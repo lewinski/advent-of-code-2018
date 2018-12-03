@@ -7,6 +7,25 @@ import (
 	"os"
 )
 
+func check(e error) {
+	if e != nil {
+		panic(e)
+	}
+}
+
+func fileLines(path string) []string {
+	f, err := os.Open(path)
+	check(err)
+
+	lines := make([]string, 0)
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		lines = append(lines, s.Text())
+	}
+
+	return lines
+}
+
 // copy from my hamming exercise on exercism
 
 // Distance calculates the hamming distance between two strings
@@ -28,22 +47,8 @@ func Distance(a, b string) (int, error) {
 	return distance, nil
 }
 
-func check(e error) {
-	if e != nil {
-		panic(e)
-	}
-}
-
 func main() {
-	// read whole file into box id list
-	f, err := os.Open("input")
-	check(err)
-
-	boxes := make([]string, 0)
-	s := bufio.NewScanner(f)
-	for s.Scan() {
-		boxes = append(boxes, s.Text())
-	}
+	boxes := fileLines("input")
 
 	// check each pair of box ids for a hamming distance of 1
 	for i := 0; i < len(boxes); i++ {

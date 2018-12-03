@@ -12,16 +12,21 @@ func check(e error) {
 	}
 }
 
-func main() {
-	// read whole file into box id list
-	f, err := os.Open("input")
+func fileLines(path string) []string {
+	f, err := os.Open(path)
 	check(err)
 
-	boxes := make([]string, 0)
+	lines := make([]string, 0)
 	s := bufio.NewScanner(f)
 	for s.Scan() {
-		boxes = append(boxes, s.Text())
+		lines = append(lines, s.Text())
 	}
+
+	return lines
+}
+
+func main() {
+	boxes := fileLines("input")
 
 	// counters for how many inputs had a two or three
 	twos := 0

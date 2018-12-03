@@ -8,10 +8,28 @@ import (
 	"strconv"
 )
 
+func atoi(x string) int {
+	i, _ := strconv.Atoi(x)
+	return i
+}
+
 func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+func fileLines(path string) []string {
+	f, err := os.Open(path)
+	check(err)
+
+	lines := make([]string, 0)
+	s := bufio.NewScanner(f)
+	for s.Scan() {
+		lines = append(lines, s.Text())
+	}
+
+	return lines
 }
 
 type claim struct {
@@ -23,30 +41,21 @@ type claim struct {
 }
 
 func main() {
-	// read whole file into box id list
-	f, err := os.Open("input")
-	check(err)
-
-	lines := make([]string, 0)
-	s := bufio.NewScanner(f)
-	for s.Scan() {
-		lines = append(lines, s.Text())
-	}
-
-	claims := make([]claim, 0)
-
 	// parse stuff
+	lines := fileLines("input")
+	claims := make([]claim, 0)
 	for _, s := range lines {
 		re := regexp.MustCompile("^#(\\d+) @ (\\d+),(\\d+): (\\d+)x(\\d+)$")
 		matches := re.FindStringSubmatch(s)
 
-		id, _ := strconv.Atoi(matches[1])
-		x, _ := strconv.Atoi(matches[2])
-		y, _ := strconv.Atoi(matches[3])
-		w, _ := strconv.Atoi(matches[4])
-		h, _ := strconv.Atoi(matches[5])
+		var c claim
+		c.id = atoi(matches[1])
+		c.x = atoi(matches[2])
+		c.y = atoi(matches[3])
+		c.w = atoi(matches[4])
+		c.h = atoi(matches[5])
 
-		claims = append(claims, claim{id, x, y, w, h})
+		claims = append(claims, c)
 	}
 
 	// make a map of claims
