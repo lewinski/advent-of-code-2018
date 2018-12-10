@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"container/ring"
 	"fmt"
 	"os"
 	"strconv"
@@ -39,10 +40,36 @@ func main() {
 		changes = append(changes, atoi(l))
 	}
 
+	// part 1
 	freq := 0
 	for _, i := range changes {
 		freq += i
 	}
-
 	fmt.Println(freq)
+
+	// part 2
+	// load change list into ring
+	r := ring.New(len(changes))
+	for _, i := range changes {
+		r.Value = i
+		r = r.Next()
+	}
+
+	// make note of frequencies we've seen
+	freq = 0
+	seen := make(map[int]bool)
+	seen[freq] = true
+
+	// walk the ring and apply changes until we get a duplicate
+	for {
+		value, _ := r.Value.(int)
+		freq += value
+		if seen[freq] {
+			fmt.Println(freq)
+			break
+		} else {
+			seen[freq] = true
+		}
+		r = r.Next()
+	}
 }
