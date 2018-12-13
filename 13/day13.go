@@ -163,6 +163,8 @@ func main() {
 	tracks := make([]string, len(lines))
 	copy(tracks, lines)
 
+	totalCarts := 0
+
 	carts := make([][]cart, len(tracks))
 	for i := range carts {
 		carts[i] = make([]cart, len(tracks[i]))
@@ -172,6 +174,7 @@ func main() {
 		for j := range tracks[i] {
 			if f, ok := toFacing([]rune(tracks[i])[j]); ok {
 				carts[i][j] = cart{0, f}
+				totalCarts++
 				if f == up || f == down {
 					tracks[i] = tracks[i][:j] + "|" + tracks[i][j+1:]
 				} else {
@@ -205,6 +208,7 @@ func main() {
 						// delete both carts
 						carts[a][b].direction = invalid
 						newCarts[a][b].direction = invalid
+						totalCarts -= 2
 					} else {
 						// move the cart into the new position
 						newCarts[a][b] = c
@@ -218,17 +222,14 @@ func main() {
 		// printCarts(tracks, carts)
 
 		// see if there is only one cart left
-		totalCarts, x, y := 0, 0, 0
-		for i := range carts {
-			for j := range carts[i] {
-				if carts[i][j].direction != invalid {
-					totalCarts++
-					x, y = j, i
+		if totalCarts <= 1 {
+			for i := range carts {
+				for j := range carts[i] {
+					if carts[i][j].direction != invalid {
+						fmt.Println("last cart is at", j, i)
+					}
 				}
 			}
-		}
-		if totalCarts <= 1 {
-			fmt.Println("last cart is at", x, y)
 			break
 		}
 	}
