@@ -62,6 +62,15 @@ func (p point) offset(o point) point {
 	return point{p.x + o.x, p.y + o.y}
 }
 
+func (p point) adjacent() []point {
+	return []point{
+		p.offset(point{-1, 0}),
+		p.offset(point{0, -1}),
+		p.offset(point{0, 1}),
+		p.offset(point{1, 0}),
+	}
+}
+
 type unit struct {
 	id       int
 	elf      bool
@@ -287,12 +296,8 @@ nextRound:
 				// find positions in attack range of each target
 				inrange := []point{}
 				for _, t := range targets {
-					options := []point{
-						t.position.offset(point{-1, 0}),
-						t.position.offset(point{0, -1}),
-						t.position.offset(point{0, 1}),
-						t.position.offset(point{1, 0}),
-					}
+					options := t.position.adjacent()
+
 					for _, o := range options {
 						if _, ok := blocked[o]; ok {
 							continue
@@ -326,12 +331,7 @@ nextRound:
 					backwards := bfsDistances(goal, blocked)
 
 					// positions we are next to
-					candidates := []point{
-						u.position.offset(point{-1, 0}),
-						u.position.offset(point{0, -1}),
-						u.position.offset(point{0, 1}),
-						u.position.offset(point{1, 0}),
-					}
+					candidates := u.position.adjacent()
 
 					// check all the positions we are next to and find the one that is closest to the goal and not blocked
 					candidateDistances := map[point]int{}
@@ -410,12 +410,7 @@ func bfsDistances(pos point, blocked map[point]bool) map[point]int {
 	for candidates.Len() > 0 {
 		p := candidates.Front().Value.(point)
 		candidates.Remove(candidates.Front())
-		options := []point{
-			p.offset(point{-1, 0}),
-			p.offset(point{0, -1}),
-			p.offset(point{0, 1}),
-			p.offset(point{1, 0}),
-		}
+		options := p.adjacent()
 		for _, o := range options {
 			// already been here
 			if _, ok := reachable[o]; ok {
