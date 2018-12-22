@@ -58,6 +58,10 @@ type point struct {
 	x, y int
 }
 
+func (p point) above() point {
+	return point{p.x, p.y - 1}
+}
+
 func (p point) below() point {
 	return point{p.x, p.y + 1}
 }

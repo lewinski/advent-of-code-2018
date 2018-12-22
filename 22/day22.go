@@ -43,12 +43,28 @@ func (p point) offset(o point) point {
 	return point{p.x + o.x, p.y + o.y}
 }
 
+func (p point) above() point {
+	return p.offset(point{0, -1})
+}
+
+func (p point) below() point {
+	return p.offset(point{0, 1})
+}
+
+func (p point) left() point {
+	return p.offset(point{-1, 0})
+}
+
+func (p point) right() point {
+	return p.offset(point{1, 0})
+}
+
 func (p point) neighbors() []point {
 	return []point{
-		p.offset(point{0, -1}),
-		p.offset(point{0, 1}),
-		p.offset(point{-1, 0}),
-		p.offset(point{1, 0}),
+		p.above(),
+		p.below(),
+		p.left(),
+		p.right(),
 	}
 }
 
@@ -78,16 +94,16 @@ type geology struct {
 	risk          int
 }
 
-func printRegion(geo [][]geology, t point) {
-	for y := range geo {
+func printRegion(geo map[point]geology, target point, bounds point) {
+	for y := 0; y < bounds.y; y++ {
 		var sb strings.Builder
-		for x := range geo[y] {
+		for x := 0; x < bounds.x; x++ {
 			if x == 0 && y == 0 {
 				sb.WriteRune('M')
-			} else if x == t.x && y == t.y {
+			} else if x == target.x && y == target.y {
 				sb.WriteRune('T')
 			} else {
-				sb.WriteRune(rune(geo[y][x].regionType))
+				sb.WriteRune(rune(geo[point{x, y}].regionType))
 			}
 		}
 		fmt.Println(sb.String())
@@ -190,35 +206,35 @@ func main() {
 	// generate the geological map per the puzzle constraints
 	margin := 50
 	width, height := tgtx+margin, tgty+margin
-	geo := make([][]geology, height)
-	for y := range geo {
-		geo[y] = make([]geology, width)
-		for x := range geo[y] {
+	geo := map[point]geology{}
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			p := point{x, y}
+			g := geology{}
 			if x == 0 && y == 0 {
-				geo[y][x].geologicIndex = 0
+				g.geologicIndex = 0
 			} else if x == tgtx && y == tgty {
-				geo[y][x].geologicIndex = 0
+				g.geologicIndex = 0
 			} else if x == 0 {
-				geo[y][x].geologicIndex = y * 48271
+				g.geologicIndex = y * 48271
 			} else if y == 0 {
-				geo[y][x].geologicIndex = x * 16807
+				g.geologicIndex = x * 16807
 			} else {
-				geo[y][x].geologicIndex = geo[y-1][x].erosionLevel * geo[y][x-1].erosionLevel
+				g.geologicIndex = geo[p.above()].erosionLevel * geo[p.left()].erosionLevel
 			}
-			geo[y][x].erosionLevel = (geo[y][x].geologicIndex + depth) % 20183
-			geo[y][x].risk = geo[y][x].erosionLevel % 3
-			geo[y][x].regionType = regionTypes[geo[y][x].risk]
+			g.erosionLevel = (g.geologicIndex + depth) % 20183
+			g.risk = g.erosionLevel % 3
+			g.regionType = regionTypes[g.risk]
+			geo[p] = g
 		}
 	}
-	// printRegion(geo, point{tgtx, tgty})
+	// printRegion(geo, point{tgtx, tgty}, point{tgtx + 5, tgty + 5})
 
 	// calculate the "risk" over the region from the origin to the target
 	risk := 0
-	for y := range geo {
-		for x := range geo[y] {
-			if x <= tgtx && y <= tgty {
-				risk += geo[y][x].risk
-			}
+	for p, g := range geo {
+		if p.x <= tgtx && p.y <= tgty {
+			risk += g.risk
 		}
 	}
 	fmt.Println("part 1 risk =", risk)
@@ -254,8 +270,8 @@ func main() {
 				continue
 			}
 			// this state is not a valid move (because the gear doesn't match both regions)
-			currentRegion := geo[next.pos.loc.y][next.pos.loc.x].regionType
-			nextRegion := geo[sp.loc.y][sp.loc.x].regionType
+			currentRegion := geo[next.pos.loc].regionType
+			nextRegion := geo[sp.loc].regionType
 			if !validMove(next.pos.gear, currentRegion, nextRegion) {
 				continue
 			}
